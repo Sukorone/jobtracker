@@ -12,6 +12,7 @@ interface AuthState {
 
 const MESSAGES: Record<string, string> = {
   invalid_credentials: 'Неверный логин или пароль',
+  email_not_confirmed: 'Учётная запись не подтверждена — подтвердите её в Supabase (Authentication → Users)',
   over_request_rate_limit: 'Слишком много попыток. Подождите немного.',
   weak_password: 'Слишком простой пароль',
   same_password: 'Новый пароль совпадает со старым',
