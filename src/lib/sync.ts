@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { ApiError, api } from './api';
+import { useAuth } from './auth';
 import { normalize } from './persist';
+import { supabase } from './supabase';
 import { useStore } from './store';
 import type { Application } from './types';
 
@@ -71,22 +72,42 @@ async function flush() {
   const upsert = ids.map((id) => byId.get(id)).filter((a): a is Application => !!a);
   useSync.setState({ status: 'saving', error: '' });
   try {
-    await api('/applications/sync', { body: { upsert, delete: del } });
+    await push(upsert, del);
     retryDelay = 0;
     useSync.setState({ status: hasPending() ? 'saving' : 'idle' });
   } catch (err) {
     // Put the batch back unless newer changes superseded it.
     for (const id of ids) if (!pendingDelete.has(id)) pendingUpsert.add(id);
     for (const id of del) if (!pendingUpsert.has(id)) pendingDelete.add(id);
-    const message = err instanceof Error ? err.message : 'Не удалось сохранить';
-    useSync.setState({ status: 'error', error: message });
-    if (err instanceof ApiError && err.status === 401) return void (inFlight = false);
+    useSync.setState({ status: 'error', error: errorText(err) });
     retryDelay = Math.min(retryDelay ? retryDelay * 2 : 2000, 60_000);
     schedule(retryDelay);
   } finally {
     inFlight = false;
   }
   if (hasPending() && useSync.getState().status !== 'error') schedule(300);
+}
+
+const TABLE = 'applications';
+
+function errorText(err: unknown): string {
+  const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : '';
+  return !msg || /fetch|network/i.test(msg) ? 'Нет связи с сервером' : msg;
+}
+
+async function push(upsert: Application[], del: string[]) {
+  const userId = useAuth.getState().userId;
+  if (!userId) throw new Error('Требуется вход');
+  if (upsert.length) {
+    const now = new Date().toISOString();
+    const rows = upsert.map((a) => ({ user_id: userId, id: a.id, data: a, updated_at: now }));
+    const { error } = await supabase.from(TABLE).upsert(rows, { onConflict: 'user_id,id' });
+    if (error) throw error;
+  }
+  if (del.length) {
+    const { error } = await supabase.from(TABLE).delete().eq('user_id', userId).in('id', del);
+    if (error) throw error;
+  }
 }
 
 function hydrate(apps: Application[]) {
@@ -99,14 +120,15 @@ function hydrate(apps: Application[]) {
 export async function loadFromServer({ quiet = false } = {}) {
   if (!quiet) useSync.setState({ status: 'loading', error: '' });
   try {
-    const res = await api<{ applications: unknown[] }>('/applications');
+    const { data, error } = await supabase.from(TABLE).select('data').order('updated_at', { ascending: false });
+    if (error) throw error;
     if (hasPending() || inFlight) return; // local edits win; they will be pushed shortly
-    hydrate(res.applications.map(normalize).filter((a): a is Application => a !== null));
+    hydrate(data.map((r) => normalize(r.data)).filter((a): a is Application => a !== null));
     lastLoadedAt = Date.now();
     useSync.setState({ status: 'idle', loaded: true, error: '' });
   } catch (err) {
     if (quiet) return;
-    useSync.setState({ status: 'load-error', error: err instanceof Error ? err.message : 'Ошибка загрузки' });
+    useSync.setState({ status: 'load-error', error: errorText(err) });
   }
 }
 

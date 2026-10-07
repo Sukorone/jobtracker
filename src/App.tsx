@@ -25,9 +25,6 @@ export default function App() {
   const loadError = useSync((s) => s.status === 'load-error');
 
   useEffect(() => {
-    void useAuth.getState().check();
-  }, []);
-  useEffect(() => {
     if (auth === 'authed') void loadFromServer();
     else if (auth === 'anon') resetSync();
   }, [auth]);

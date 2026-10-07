@@ -1,49 +1,61 @@
 import { create } from 'zustand';
-import { api, getToken, setToken, setUnauthorizedHandler } from './api';
+import { emailToLogin, loginToEmail, supabase } from './supabase';
 
 interface AuthState {
   status: 'checking' | 'anon' | 'authed';
+  userId: string;
   username: string;
   login(username: string, password: string): Promise<void>;
   logout(): Promise<void>;
   changePassword(current: string, next: string): Promise<void>;
-  check(): Promise<void>;
 }
 
-export const useAuth = create<AuthState>()((set) => ({
-  status: getToken() ? 'checking' : 'anon',
+const MESSAGES: Record<string, string> = {
+  invalid_credentials: 'Неверный логин или пароль',
+  over_request_rate_limit: 'Слишком много попыток. Подождите немного.',
+  weak_password: 'Слишком простой пароль',
+  same_password: 'Новый пароль совпадает со старым',
+};
+
+function message(err: { code?: string; message?: string; status?: number }): string {
+  if (err.code && MESSAGES[err.code]) return MESSAGES[err.code];
+  if (!err.status || err.message?.includes('fetch')) return 'Нет связи с сервером';
+  return err.message || 'Ошибка входа';
+}
+
+export const useAuth = create<AuthState>()((_set, get) => ({
+  status: 'checking',
+  userId: '',
   username: '',
 
   async login(username, password) {
-    const res = await api<{ token: string; user: { username: string } }>('/auth/login', { body: { username, password } });
-    setToken(res.token);
-    set({ status: 'authed', username: res.user.username });
+    const { error } = await supabase.auth.signInWithPassword({ email: loginToEmail(username.trim()), password });
+    if (error) throw new Error(message(error));
   },
 
   async logout() {
-    await api('/auth/logout', { method: 'POST' }).catch(() => {});
-    setToken(null);
-    set({ status: 'anon', username: '' });
+    await supabase.auth.signOut();
   },
 
   async changePassword(current, next) {
-    await api('/auth/password', { body: { current, next } });
-  },
-
-  async check() {
-    if (!getToken()) return set({ status: 'anon' });
-    try {
-      const res = await api<{ user: { username: string } }>('/me');
-      set({ status: 'authed', username: res.user.username });
-    } catch (err) {
-      // 401 is handled globally (back to the login screen). Any other failure — offline,
-      // server down — keeps the session; the load step shows the error with a retry button.
-      if ((err as { status?: number }).status !== 401) set({ status: 'authed' });
-    }
+    if (next.length < 8) throw new Error('Новый пароль — минимум 8 символов');
+    // Supabase does not ask for the old password, so check it ourselves.
+    const email = loginToEmail(get().username);
+    const check = await supabase.auth.signInWithPassword({ email, password: current });
+    if (check.error) throw new Error(check.error.code === 'invalid_credentials' ? 'Текущий пароль неверный' : message(check.error));
+    const { error } = await supabase.auth.updateUser({ password: next });
+    if (error) throw new Error(message(error));
+    // Sign out other devices.
+    await supabase.auth.signOut({ scope: 'others' });
   },
 }));
 
-setUnauthorizedHandler(() => {
-  setToken(null);
-  useAuth.setState({ status: 'anon', username: '' });
+supabase.auth.onAuthStateChange((_event, session) => {
+  const user = session?.user;
+  const cur = useAuth.getState();
+  if (!user) {
+    if (cur.status !== 'anon') useAuth.setState({ status: 'anon', userId: '', username: '' });
+  } else if (cur.userId !== user.id || cur.status !== 'authed') {
+    useAuth.setState({ status: 'authed', userId: user.id, username: emailToLogin(user.email) });
+  }
 });
