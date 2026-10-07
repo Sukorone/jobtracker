@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { useStore } from '../lib/store';
 import type { ThemePref, View } from '../lib/types';
 import { MainMenu } from './MainMenu';
+import { SyncIndicator } from './SyncIndicator';
 
 const VIEWS: { key: View; label: string; icon: typeof Kanban }[] = [
   { key: 'board', label: 'Доска', icon: Kanban },
@@ -86,6 +87,7 @@ export function TopBar() {
       )}
 
       <div className="topbar__tools">
+        <SyncIndicator />
         <button
           className="icon-btn"
           onClick={() => setSettings({ theme: THEME_NEXT[theme] })}

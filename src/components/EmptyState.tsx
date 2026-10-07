@@ -25,7 +25,7 @@ export function EmptyState() {
         Все отклики — <span className="grad-text">в одном месте</span>
       </h1>
       <p className="welcome__text">
-        Добавьте первую вакансию или посмотрите, как всё выглядит, на демо-данных. Данные хранятся только в этом браузере.
+        Добавьте первую вакансию или посмотрите, как всё выглядит, на демо-данных. Всё сохраняется на сервере и доступно с любого устройства.
       </p>
       <div className="welcome__cta">
         <button className="btn btn--primary btn--lg" onClick={() => openDrawer({ draft: {} })}>

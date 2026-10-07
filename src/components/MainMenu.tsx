@@ -1,10 +1,12 @@
-import { Ellipsis, FileBraces, FileSpreadsheet, Hourglass, Minus, Plus, Sparkles, Trash, Upload } from 'lucide-react';
-import { useRef } from 'react';
+import { Ellipsis, FileBraces, FileSpreadsheet, Hourglass, KeyRound, LogOut, Minus, Plus, Sparkles, Trash, Upload, User } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useAuth } from '../lib/auth';
 import { confirm } from '../lib/confirm';
 import { plural } from '../lib/dates';
 import { demoApplications } from '../lib/demo';
 import { exportCSV, exportJSON, readImportFile } from '../lib/io';
 import { useStore } from '../lib/store';
+import { PasswordDialog } from './PasswordDialog';
 import { Popover } from './Popover';
 
 export function MainMenu() {
@@ -13,6 +15,9 @@ export function MainMenu() {
   const apps = useStore((s) => s.apps);
   const silence = useStore((s) => s.settings.silenceDays);
   const { setSettings, replaceAll, mergeIn, toast } = useStore.getState();
+  const username = useAuth((s) => s.username);
+  const logout = useAuth((s) => s.logout);
+  const [pwOpen, setPwOpen] = useState(false);
 
   const pickFile = (mode: 'replace' | 'merge') => {
     importMode.current = mode;
@@ -77,6 +82,20 @@ export function MainMenu() {
       >
         {(close) => (
           <>
+            <div className="menu__account">
+              <span className="menu__avatar">
+                <User size={16} />
+              </span>
+              <span className="menu__user">{username || 'Аккаунт'}</span>
+            </div>
+            <button className="menu__item" onClick={() => (setPwOpen(true), close())}>
+              <KeyRound size={16} /> Сменить пароль
+            </button>
+            <button className="menu__item" onClick={() => (close(), logout())}>
+              <LogOut size={16} /> Выйти
+            </button>
+
+            <div className="menu__sep" />
             <div className="menu__label">Данные</div>
             <button className="menu__item" disabled={!apps.length} onClick={() => (exportJSON(apps), close())}>
               <FileBraces size={16} /> Экспорт JSON <span className="menu__hint">бэкап</span>
@@ -127,6 +146,7 @@ export function MainMenu() {
           </>
         )}
       </Popover>
+      <PasswordDialog open={pwOpen} onClose={() => setPwOpen(false)} />
     </>
   );
 }

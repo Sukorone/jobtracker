@@ -14,7 +14,7 @@
 - Тёмная и светлая темы, PWA (можно установить на телефон, работает офлайн).
 - Экспорт в JSON (бэкап) и CSV (Google Sheets / Excel), импорт JSON.
 
-Данные хранятся в `localStorage` браузера. Записи из первой версии (`job-tracker:v1`) переносятся автоматически при первом запуске.
+Данные хранятся на вашем сервере (Node + SQLite) под логином и паролем; регистрация закрыта, учётные записи создаются командой на сервере. Тема и вид — настройки устройства, они остаются в браузере.
 
 ## Горячие клавиши
 
@@ -26,12 +26,43 @@
 | `Ctrl/⌘ + Enter` | сохранить новый отклик |
 | `Esc` | закрыть панель |
 
+## Сервер
+
+Код в [`server/`](server): Hono, встроенный в Node `node:sqlite`, пароли — scrypt, вход по bearer-токену (хранится только хеш, срок 90 дней с продлением), защита от перебора паролей, CORS только для вашего фронтенда.
+
+### Развернуть на VPS
+
+Нужны Docker и домен (или поддомен) для API, например `api.example.com`, с A-записью на сервер.
+
+```bash
+git clone https://github.com/Sukorone/jobtracker.git && cd jobtracker/server
+cp .env.example .env        # впишите API_DOMAIN и CORS_ORIGINS
+docker compose up -d --build
+docker compose exec api node src/cli.ts add <логин>   # спросит пароль
+```
+
+Caddy сам получит HTTPS-сертификат. База лежит в `server/data/jobtracker.db` — для бэкапа достаточно копировать эту папку.
+
+Управление пользователями:
+
+```bash
+docker compose exec api node src/cli.ts list
+docker compose exec api node src/cli.ts passwd <логин>   # сбросить пароль, разлогинит все устройства
+docker compose exec api node src/cli.ts remove <логин>   # удалить вместе с данными
+```
+
+### Подключить фронтенд
+
+В репозитории: **Settings → Secrets and variables → Actions → Variables** → `API_URL` = `https://api.example.com`. Следующий деплой Pages соберётся с этим адресом.
+
 ## Разработка
 
 ```bash
-npm install
-npm run dev      # http://localhost:5173/jobtracker/
-npm run build    # сборка в dist/
+npm install && (cd server && npm install)
+cd server && node src/cli.ts add dev && npm run dev   # API на :8787
+npm run dev                                           # http://localhost:5173/jobtracker/, /api проксируется на :8787
+npm run build
+cd server && npm test
 ```
 
-Стек: Vite, React 19, TypeScript, Zustand, dnd-kit, Motion. Деплой на GitHub Pages через GitHub Actions (`.github/workflows/deploy.yml`) при пуше в `main`.
+Стек: Vite, React 19, TypeScript, Zustand, dnd-kit, Motion; сервер — Hono + SQLite. Фронтенд деплоится на GitHub Pages через GitHub Actions при пуше в `main`.

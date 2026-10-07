@@ -1,15 +1,7 @@
 import { create } from 'zustand';
 import { STATUSES } from './constants';
 import { todayISO } from './dates';
-import {
-  DEFAULT_SETTINGS,
-  SETTINGS_KEY,
-  STORAGE_KEY,
-  loadApplications,
-  loadSettings,
-  uid,
-  writeJSON,
-} from './persist';
+import { DEFAULT_SETTINGS, SETTINGS_KEY, loadSettings, uid, writeJSON } from './persist';
 import type { Application, Draft, Filters, Settings, Status, TimelineEvent } from './types';
 
 export interface Toast {
@@ -64,7 +56,8 @@ export const useStore = create<State>()((set, get) => {
     set((s) => ({ apps: s.apps.map((a) => (a.id === id ? { ...fn(a), updatedAt: Date.now() } : a)) }));
 
   return {
-    apps: loadApplications(),
+    // Filled from the server after sign-in (see sync.ts).
+    apps: [],
     settings: loadSettings(),
     filters: DEFAULT_FILTERS,
     drawer: null,
@@ -181,14 +174,9 @@ export const useStore = create<State>()((set, get) => {
   };
 });
 
-/* Persist apps and settings whenever they change. */
-let lastApps = useStore.getState().apps;
+/* Settings are per device and stay in localStorage; applications sync to the server. */
 let lastSettings = useStore.getState().settings;
 useStore.subscribe((s) => {
-  if (s.apps !== lastApps) {
-    lastApps = s.apps;
-    if (!writeJSON(STORAGE_KEY, s.apps)) s.toast('Не удалось сохранить: хранилище браузера недоступно', { tone: 'error' });
-  }
   if (s.settings !== lastSettings) {
     lastSettings = s.settings;
     writeJSON(SETTINGS_KEY, s.settings);

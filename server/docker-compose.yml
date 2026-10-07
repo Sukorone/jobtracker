@@ -1,0 +1,35 @@
+# Production: API behind Caddy with automatic HTTPS.
+#   1. Point a DNS A-record (e.g. api.example.com) at this server.
+#   2. cp .env.example .env and fill it in.
+#   3. docker compose up -d
+#   4. docker compose exec api node src/cli.ts add <login>
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      TRUST_PROXY: '1'
+    volumes:
+      - ./data:/data
+    expose:
+      - '8787'
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  caddy_data:
+  caddy_config:

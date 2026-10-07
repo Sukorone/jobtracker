@@ -2,8 +2,6 @@ import { FORMATS, PRIORITIES, SOURCES, STATUSES, detectSource } from './constant
 import { parseDate } from './dates';
 import type { Application, Priority, Settings, Source, Status, TimelineEvent, WorkFormat } from './types';
 
-export const STORAGE_KEY = 'job-tracker:v2';
-export const LEGACY_KEY = 'job-tracker:v1';
 export const SETTINGS_KEY = 'job-tracker:settings';
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,25 +33,12 @@ export function writeJSON(key: string, value: unknown): boolean {
   }
 }
 
-export function loadApplications(): Application[] {
-  const v2 = readJSON(STORAGE_KEY);
-  if (Array.isArray(v2)) return v2.map(normalize).filter((a): a is Application => a !== null);
-  // First run on v2: pick up records saved by the old single-file version.
-  const v1 = readJSON(LEGACY_KEY);
-  if (Array.isArray(v1)) {
-    const migrated = v1.map(normalize).filter((a): a is Application => a !== null);
-    writeJSON(STORAGE_KEY, migrated);
-    return migrated;
-  }
-  return [];
-}
-
 export function loadSettings(): Settings {
   const s = readJSON(SETTINGS_KEY);
   return { ...DEFAULT_SETTINGS, ...(s && typeof s === 'object' ? (s as Partial<Settings>) : {}) };
 }
 
-/* ─── Normalisation (v1 → v2 and untrusted imports) ─── */
+/* ─── Normalisation of server data and imports (also accepts the v1 export format) ─── */
 
 const V1_STAGE_TO_STATUS: Record<string, Status> = {
   screening: 'hr',

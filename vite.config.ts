@@ -4,6 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   base: '/jobtracker/',
+  server: {
+    // In dev the API runs locally (cd server && npm run dev).
+    proxy: { '/api': 'http://localhost:8787' },
+  },
   plugins: [
     react(),
     VitePWA({
@@ -25,6 +29,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png}', 'assets/*-{latin,cyrillic}-wght-normal-*.woff2'],
+        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],
