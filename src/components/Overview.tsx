@@ -1,3 +1,4 @@
+import { copyText } from '../lib/clipboard';
 import { CalendarPlus, Check, ChevronDown, Copy, Target } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useMemo, useState } from 'react';
@@ -125,7 +126,7 @@ function FocusList({ items }: { items: FocusItem[] }) {
 
   const copyFollowup = async (item: FocusItem) => {
     try {
-      await navigator.clipboard.writeText(TEMPLATES[0].build(item.app));
+      await copyText(TEMPLATES[0].build(item.app));
       addNote(item.app.id, 'Отправлено напоминание');
       toast('Текст напоминания скопирован, событие записано в историю');
     } catch {

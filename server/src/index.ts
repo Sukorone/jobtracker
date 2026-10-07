@@ -12,13 +12,15 @@ const corsOrigins = (process.env.CORS_ORIGINS ?? '')
   .filter(Boolean);
 
 const db = openDb(join(dataDir, 'jobtracker.db'));
-const app = createApp({ db, corsOrigins, trustProxy: process.env.TRUST_PROXY === '1' });
+const staticDir = process.env.STATIC_DIR || undefined;
+const app = createApp({ db, corsOrigins, trustProxy: process.env.TRUST_PROXY === '1', staticDir });
 
 purgeExpiredSessions(db);
 setInterval(() => purgeExpiredSessions(db), 6 * 60 * 60 * 1000).unref();
 
 const server = serve({ fetch: app.fetch, port, hostname: process.env.HOST ?? '0.0.0.0' }, (info) => {
   console.log(`jobtracker api on :${info.port}, data in ${dataDir}, CORS: ${corsOrigins.join(', ') || 'none'}`);
+  if (staticDir) console.log(`serving frontend from ${staticDir} at /jobtracker/`);
 });
 
 const shutdown = () => {

@@ -1,4 +1,5 @@
 import { getConnInfo } from '@hono/node-server/conninfo';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono, type Context } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
@@ -25,6 +26,8 @@ export interface Options {
   corsOrigins: string[];
   /** Read the client IP from X-Forwarded-For (only behind a reverse proxy you control). */
   trustProxy: boolean;
+  /** Built frontend (dist/) to serve under /jobtracker/, so the whole app runs from one origin. */
+  staticDir?: string;
 }
 
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
@@ -33,7 +36,7 @@ const MAX_APPS_PER_USER = 5000;
 
 type Env = { Variables: { user: User; token: string } };
 
-export function createApp({ db, corsOrigins, trustProxy }: Options) {
+export function createApp({ db, corsOrigins, trustProxy, staticDir }: Options) {
   const app = new Hono<Env>();
 
   app.use('*', secureHeaders());
@@ -49,6 +52,17 @@ export function createApp({ db, corsOrigins, trustProxy }: Options) {
   app.use('/api/*', bodyLimit({ maxSize: 8 * 1024 * 1024, onError: (c) => c.json({ error: 'Слишком большой запрос' }, 413) }));
 
   app.get('/api/health', (c) => c.json({ ok: true }));
+
+  if (staticDir) {
+    const BASE = '/jobtracker';
+    const cache = (path: string, c: Context) =>
+      c.header('Cache-Control', path.includes('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache');
+    app.get('/', (c) => c.redirect(`${BASE}/`));
+    app.get(BASE, (c) => c.redirect(`${BASE}/`));
+    app.use(`${BASE}/*`, serveStatic({ root: staticDir, rewriteRequestPath: (p) => p.slice(BASE.length) || '/', onFound: cache }));
+    // Anything else under the base is a client-side route.
+    app.get(`${BASE}/*`, serveStatic({ root: staticDir, path: 'index.html', onFound: cache }));
+  }
 
   const clientIp = (c: Context) => {
     if (trustProxy) {

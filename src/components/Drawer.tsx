@@ -1,3 +1,4 @@
+import { copyText } from '../lib/clipboard';
 import {
   Archive,
   ArchiveRestore,
@@ -442,7 +443,7 @@ function Templates({ app }: { app: Application }) {
   const toast = useStore((s) => s.toast);
   const copy = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copyText(text);
       toast('Текст скопирован — вставьте в чат или письмо');
     } catch {
       toast('Не удалось скопировать', { tone: 'error' });

@@ -30,6 +30,22 @@
 
 Код в [`server/`](server): Hono, встроенный в Node `node:sqlite`, пароли — scrypt, вход по bearer-токену (хранится только хеш, срок 90 дней с продлением), защита от перебора паролей, CORS только для вашего фронтенда.
 
+### Запустить на своём Mac (бесплатно)
+
+Сервер отдаёт и API, и сам сайт, запускается при входе в систему и перезапускается, если упал.
+
+```bash
+git clone https://github.com/Sukorone/jobtracker.git ~/jobtracker
+~/jobtracker/scripts/install-mac.sh
+cd ~/jobtracker/server && node src/cli.ts add <логин>
+```
+
+- На Mac: http://localhost:8787/jobtracker/
+- С айфона в той же Wi-Fi сети: `http://<IP Mac>:8787/jobtracker/` (скрипт покажет адрес).
+- Вне дома — через [Tailscale](https://tailscale.com) (бесплатно): установите его на Mac и айфон под одним аккаунтом, затем `tailscale serve --bg 8787` — получится постоянный HTTPS-адрес вида `https://<mac>.<tailnet>.ts.net/jobtracker/`, доступный только вашим устройствам.
+- Mac должен быть включён и не спать.
+- Обновление: `cd ~/jobtracker && git pull && scripts/install-mac.sh`.
+
 ### Развернуть на VPS
 
 Нужны Docker и домен (или поддомен) для API, например `api.example.com`, с A-записью на сервер.
