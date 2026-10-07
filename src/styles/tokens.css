@@ -1,0 +1,143 @@
+/* ─── Design tokens ───────────────────────────────────────────
+   Dark is the signature look; light is its daytime sibling.
+   Theme is stamped on <html data-theme>, resolved from the
+   user's preference (system / light / dark).
+──────────────────────────────────────────────────────────── */
+
+:root {
+  --font-display: 'Unbounded Variable', 'Onest Variable', system-ui, sans-serif;
+  --font-sans: 'Onest Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --grad: linear-gradient(120deg, #8b5cf6 0%, #ec4899 52%, #f59e0b 100%);
+  --grad-soft: linear-gradient(120deg, rgba(139, 92, 246, 0.22), rgba(236, 72, 153, 0.18) 55%, rgba(245, 158, 11, 0.16));
+
+  --topbar-h: 68px;
+}
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b0a1a;
+  --bg-2: #120f27;
+  --panel: rgba(26, 22, 52, 0.62);
+  --panel-solid: #17142e;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --card: rgba(255, 255, 255, 0.045);
+  --card-hover: rgba(255, 255, 255, 0.075);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --field: rgba(255, 255, 255, 0.05);
+  --field-border: rgba(255, 255, 255, 0.12);
+  --overlay: rgba(6, 5, 16, 0.6);
+
+  --text: #f5f3ff;
+  --text-2: #c9c5e8;
+  --muted: #9a95c0;
+  --faint: #6c6794;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  --accent: #a78bfa;
+  --accent-strong: #8b5cf6;
+  --accent-ink: #ffffff;
+  --focus: #c4b5fd;
+
+  --danger: #fb7185;
+  --danger-bg: rgba(244, 63, 94, 0.14);
+  --warn: #fbbf24;
+  --warn-bg: rgba(245, 158, 11, 0.14);
+  --ok: #4ade80;
+  --ok-bg: rgba(34, 197, 94, 0.14);
+
+  --chart: #a78bfa;
+  --chart-2: #6d5bd0;
+  --chart-grid: rgba(255, 255, 255, 0.07);
+
+  --st-wishlist: #9aa3c7;
+  --st-applied: #4f8dfd;
+  --st-hr: #14b8a6;
+  --st-interview: #8b5cf6;
+  --st-test: #f59e0b;
+  --st-final: #ec4899;
+  --st-offer: #22c55e;
+  --st-rejected: #f43f5e;
+
+  --blob-1: #6d28d9;
+  --blob-2: #be185d;
+  --blob-3: #0e7490;
+  --blob-4: #b45309;
+  --blob-opacity: 0.55;
+  --grain: 0.06;
+
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.6), 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 32px 80px -20px rgba(0, 0, 0, 0.7), 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  --glow: 0 10px 40px -10px rgba(168, 85, 247, 0.65);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f2ff;
+  --bg-2: #ebe7ff;
+  --panel: rgba(255, 255, 255, 0.66);
+  --panel-solid: #ffffff;
+  --panel-border: rgba(76, 54, 160, 0.1);
+  --card: rgba(255, 255, 255, 0.86);
+  --card-hover: #ffffff;
+  --card-border: rgba(76, 54, 160, 0.1);
+  --field: rgba(255, 255, 255, 0.9);
+  --field-border: rgba(76, 54, 160, 0.18);
+  --overlay: rgba(30, 20, 70, 0.32);
+
+  --text: #16122e;
+  --text-2: #3b355f;
+  --muted: #625c88;
+  --faint: #8f8ab0;
+  --line: rgba(40, 30, 90, 0.09);
+  --line-strong: rgba(40, 30, 90, 0.18);
+
+  --accent: #7c3aed;
+  --accent-strong: #6d28d9;
+  --accent-ink: #ffffff;
+  --focus: #7c3aed;
+
+  --danger: #e11d48;
+  --danger-bg: rgba(225, 29, 72, 0.09);
+  --warn: #b45309;
+  --warn-bg: rgba(217, 119, 6, 0.1);
+  --ok: #15803d;
+  --ok-bg: rgba(22, 163, 74, 0.1);
+
+  --chart: #7c3aed;
+  --chart-2: #a78bfa;
+  --chart-grid: rgba(40, 30, 90, 0.08);
+
+  --st-wishlist: #6b7299;
+  --st-applied: #2563eb;
+  --st-hr: #0d9488;
+  --st-interview: #7c3aed;
+  --st-test: #d97706;
+  --st-final: #db2777;
+  --st-offer: #16a34a;
+  --st-rejected: #e11d48;
+
+  --blob-1: #c4b5fd;
+  --blob-2: #f9a8d4;
+  --blob-3: #a5f3fc;
+  --blob-4: #fde68a;
+  --blob-opacity: 0.75;
+  --grain: 0.035;
+
+  --shadow-sm: 0 2px 6px -2px rgba(60, 40, 140, 0.12);
+  --shadow: 0 12px 30px -14px rgba(60, 40, 140, 0.28), 0 2px 6px -2px rgba(60, 40, 140, 0.08);
+  --shadow-lg: 0 30px 70px -20px rgba(60, 40, 140, 0.35), 0 8px 20px -8px rgba(60, 40, 140, 0.12);
+  --glow: 0 10px 34px -10px rgba(124, 58, 237, 0.55);
+}

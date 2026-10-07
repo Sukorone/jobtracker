@@ -1,0 +1,128 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 300ms var(--ease);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 40%, transparent);
+}
+
+input[type='date'],
+input[type='time'] {
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+:root[data-theme='dark'] ::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+kbd {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.grad-text {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* thin scrollbars inside the app */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
